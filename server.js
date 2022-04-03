@@ -73,6 +73,17 @@ app.get('/detail/:id', (req,res)=>{
         }else{
             console.log(result);
             res.render('detail.ejs', {data : result});
-        }
-    })
-})
+        };
+    });
+});
+
+app.get('/edit/:id', (req,res)=>{
+    db.collection('hoon').findOne({_id : parseInt(req.params.id)},(err, result)=>{
+        if(err){
+            res.send("페이지 오류입니다");
+        }else{
+            console.log(result);
+            res.render('edit.ejs', {data : result});
+        };
+    });
+});
