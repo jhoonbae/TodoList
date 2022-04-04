@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
     <script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="/public/core.js"></script>
+    <link rel="stylesheet" href="/public/app.css">
     <title>To do List</title>
   </head>
   <body>
@@ -24,8 +25,8 @@
         <% result.forEach((item,index) => { %>
         <li class="list-group-item">
           <p>글 번호 : <%= index+1 %></p>
-          <a href="/detail/<%= item._id %>"><h4>할일 제목 : <%= item.제목 %></h4></a>
-          <p>할일 마감 날짜 : <%= item.날짜 %></p>
+          <a href="/detail/<%= item._id %>"><h4>할 일 :<%= item.제목 %></h4></a>
+          <p>마감일 : <%= item.날짜 %></p>
           <button type="button" class="btn btn-danger" data-id="<%= item._id %>">삭제</button>
           <a href="/edit/<%= item._id %>"><button type="button" class="btn btn-info">수정</button></a>
         </li>
