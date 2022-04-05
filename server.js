@@ -4,6 +4,12 @@ const app = express();
 const port = 4833;
 const MongoClient = require('mongodb').MongoClient;
 const methodOverride = require('method-override');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const session = require('express-session');
+const res = require("express/lib/response");
+const bcrypt = require('bcrypt');
+const  saltRounds = 10; 
 
 MongoClient.connect('mongodb+srv://jhoon:wjdgns12@cluster0.whpog.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',(err,client)=>{
     if(err){return console.log(err)}
@@ -15,6 +21,9 @@ MongoClient.connect('mongodb+srv://jhoon:wjdgns12@cluster0.whpog.mongodb.net/myF
     });
 })
 
+app.use(session({secret : 'secretCode', resave : true, saveUninitialized : false}))
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(methodOverride('_method'));
 app.use('/public', express.static('public'));
 app.use(express.urlencoded({extended: true}));
@@ -107,4 +116,73 @@ app.delete('/del', (req,res)=>{
             });
         });
     });
+
+app.get('/loginPage', (req,res)=>{
+    res.render('Login.ejs')
+});
+
+app.post("/Login", passport.authenticate('local', {failureRedirect : '/fail'}), (req,res)=>{
+    res.redirect('/')
+});
+
+app.get('/mypage',loginVerify, (req,res)=>{
+    res.render('mypage.ejs');
+});
+
+function loginVerify(req, res, next){
+    if(req.user){
+        next();
+    }else{
+        res.send(' not logged in yet');
+    }
+};
+
+app.get('/joinUs',(req,res)=>{
+    res.render('joinUs.ejs')
+})
+
+app.post('/join', (req,res)=>{
+    const pw = req.body.pw;
+    bcrypt.hash(pw, saltRounds, (err, hash)=> {
+        console.log(hash)
+        db.collection('member').insertOne({id : req.body.id, pw : hash}, (err, result)=>{
+            if(!err) {res.render('index.ejs')}
+        })
+    });
+})
+
+// 로그인시 아이디 비밀번호 검증
+passport.use(new LocalStrategy({
+    usernameField: 'id',
+    passwordField: 'pw',
+    session: true,
+    passReqToCallback: false,
+  },  (id, pw, done)=> {
+    console.log('id :',id,'pw :', pw);
+    db.collection('member').findOne({ id: id }, function (err, result) {
+      if (err) return done(err)
+      if (!result) return done(null, false, { message: '존재하지않는 아이디' })
+      bcrypt.compare(pw, hash, function(err, ress) {
+        // result == true
+        console.log(pw)
+        console.log(hash)
+    });
+      if (pw == result.pw) {
+          // done(서버에러, 보낼데이터, 에러메세지)
+        return done(null, result)
+      } else {
+        return done(null, false, { message: '틀린비밀번호' })
+      }
+    })
+  }));
+
+// 유저 정보 세션 저장
+passport.serializeUser((user, done)=>{ // result -> user
+    done(null, user.id);
+});
+
+
+passport.deserializeUser((id, done)=>{
+    done(null, {});
+});
 
