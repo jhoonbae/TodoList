@@ -21,7 +21,7 @@ MongoClient.connect('mongodb+srv://jhoon:wjdgns12@cluster0.whpog.mongodb.net/myF
     });
 })
 
-app.use(session({secret : 'secretCode', resave : true, saveUninitialized : false}))
+app.use(session({secret : 'secretCode', resave : false, saveUninitialized : false}))
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(methodOverride('_method'));
@@ -30,10 +30,10 @@ app.use(express.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
 app.get("/",(req,res)=>{ // main page
-    res.render("index.ejs");
+    res.render("index.ejs", {user : null});
 });
 
-app.get("/w",(req,res)=>{ // 글작성 페이지
+app.get("/write",(req,res)=>{ // 글작성 페이지
     res.render("write.ejs");
 });
 
@@ -107,7 +107,7 @@ app.put('/edit', (req,res)=>{
 
 app.delete('/del', (req,res)=>{
     targetId = parseInt(req.body.id);
-    console.log(targetId)
+    console.log(targetId);
         db.collection('hoon').deleteOne({_id : targetId}, (err,result)=>{
             db.collection('counter').updateOne({name:'게시물갯수'},{$inc:{totalPost:-1}}, (err,result)=>{
                 if(!err){
@@ -118,17 +118,22 @@ app.delete('/del', (req,res)=>{
     });
 
 app.get('/loginPage', (req,res)=>{
-    res.render('Login.ejs')
+    res.render('Login.ejs');
 });
 
-app.post("/Login", passport.authenticate('local', {failureRedirect : '/fail'}), (req,res)=>{
-    res.redirect('/')
+app.post("/Login", passport.authenticate('local', {
+    // successRedirect: "/",
+    failureRedirect : '/fail'}), (req,res)=>{
+    console.log(req.session.passport.user );
+    res.render('index.ejs', {user : req.session.passport.user});
 });
 
 app.get('/mypage',loginVerify, (req,res)=>{
-    res.render('mypage.ejs');
+    console.log(req.user);
+    res.render('mypage.ejs', {user : req.user});
 });
 
+// 로그인 여부 확인
 function loginVerify(req, res, next){
     if(req.user){
         next();
@@ -138,7 +143,7 @@ function loginVerify(req, res, next){
 };
 
 app.get('/joinUs',(req,res)=>{
-    res.render('joinUs.ejs')
+    res.render('joinUs.ejs');
 })
 
 app.post('/join', (req,res)=>{
@@ -146,8 +151,9 @@ app.post('/join', (req,res)=>{
     bcrypt.hash(pw, saltRounds, (err, hash)=> {
         console.log(hash)
         db.collection('member').insertOne({id : req.body.id, pw : hash}, (err, result)=>{
-            if(!err) {res.render('index.ejs')}
-        })
+            if(!err) {res.render('index.ejs');
+        };
+        });
     });
 })
 
@@ -156,33 +162,40 @@ passport.use(new LocalStrategy({
     usernameField: 'id',
     passwordField: 'pw',
     session: true,
-    passReqToCallback: false,
-  },  (id, pw, done)=> {
-    console.log('id :',id,'pw :', pw);
+    passReqToCallback: true,
+  },  
+  (req, id, pw, done)=> {
     db.collection('member').findOne({ id: id }, function (err, result) {
+        console.log(result.id)
       if (err) return done(err)
       if (!result) return done(null, false, { message: '존재하지않는 아이디' })
-      bcrypt.compare(pw, hash, function(err, ress) {
-        // result == true
-        console.log(pw)
-        console.log(hash)
-    });
-      if (pw == result.pw) {
-          // done(서버에러, 보낼데이터, 에러메세지)
-        return done(null, result)
-      } else {
-        return done(null, false, { message: '틀린비밀번호' })
+      if (result){
+        bcrypt.compare(pw, result.pw, function(err, check) {
+            // result == true
+            if(check){
+                console.log('check success')
+                return done(null, result)
+            }else{
+                console.log('check failed')
+                return done(null, false, { message: '틀린비밀번호' })
+            }
+        });
       }
     })
   }));
 
 // 유저 정보 세션 저장
+// login이 최초로 성공했을 때만 호출되는 함수
 passport.serializeUser((user, done)=>{ // result -> user
+    console.log("serializeUser" );
     done(null, user.id);
 });
 
-
-passport.deserializeUser((id, done)=>{
-    done(null, {});
+// 사용자가 페이지를 방문할 때마다 호출되는 함수
+passport.deserializeUser((id, done)=> {
+    db.collection('member').findOne({id : id}, (err, result)=>{
+        done(null, id);
+    })
 });
+
 
