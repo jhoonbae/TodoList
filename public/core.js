@@ -12,22 +12,7 @@ $(document).ready(()=>{
         })
     });
 
-    // $(".btn-success").click((e)=>{
-    //     var idx = e.target.dataset.id;
-    //     var title = $('#title').val();
-    //     var date = $('#date').val();
 
-    //     $.ajax({
-    //         method : 'put',
-    //         url : '/edit',
-    //         data : {_id : idx,
-    //                 title: title,
-    //                 date : date}
-    //     }).done((result)=>{
-    //         loadList();
-    //     }).fail(()=>{
-    //         alert("통신 실패")
-    //     })
-    // })
+    
 });
 

@@ -4,34 +4,34 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
-    <link rel="stylesheet" href="/public/app.css">
     <script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="/public/core.js"></script>
+    <link rel="stylesheet" href="/public/app.css">
     <title>To do List</title>
   </head>
   <body>
 
     <%- include('nav.html') %>
 
-      <div class="jumbotron">
-        <h1 class="display-4">Todo List</h1>
-        <p class="lead">간단한 Todo List 웹 페이지입니다.</p>
-        <hr class="my-4">
-        <% if(user == null){ %>
-        <a class="btn btn-primary btn-lg" href="/loginPage" role="button">로그인</a>
-        <a class="btn btn-primary btn-lg" href="/joinUs" role="button">회원가입</a>
-        <% } else {%>
-          <a class="btn btn-primary btn-lg" href="/logout" role="button">로그아웃</a>
-          <a class="btn btn-primary btn-lg" href="/write" role="button">글쓰기</a>
-          <% } %>
-      </div>
 
-    <!-- Optional JavaScript; choose one of the two! -->
+    <div class="container">
+      <ul class="list-group">
+        <% result.forEach((item,index) => { %>
+        <li class="list-group-item">
+          <p>글 번호 : <%= index+1 %></p>
+          <a href="/detail/<%= item._id %>"><h4>할 일 :<%= item.제목 %></h4></a>
+          <p>마감일 : <%= item.날짜 %></p>
+          <button type="button" class="btn btn-danger" data-id="<%= item._id %>">삭제</button>
+          <a href="/edit/<%= item._id %>"><button type="button" class="btn btn-info">수정</button></a>
+        </li>
+        <% }) %>
+      </ul>
+    </div>  
 
     <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
-    
+
   </body>
 </html>
